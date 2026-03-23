@@ -5,11 +5,10 @@ import com.example.StudentManagement.Services.CourseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
-@RequestMapping("/course")
+@RequestMapping("/api/courses")
 public class CourseController {
 
     private final CourseService courseService;
@@ -19,35 +18,58 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Course>> getAllCourses(){
-        List<Course> courses = courseService.findCourseDetails();
-        return new ResponseEntity<>(courses, HttpStatus.FOUND);
+    public ResponseEntity<List<Course>> getAllCourses() {
+        List<Course> courses = courseService.getAllCourses();
+        return new ResponseEntity<>(courses, HttpStatus.OK);
     }
 
-    @PostMapping("/admin/setDetails")
-    public ResponseEntity<String> addCourse(@RequestBody Course course){
-        courseService.addCourse(course);
-        return new ResponseEntity<>("Course added Successfully", HttpStatus.CREATED);
+    @GetMapping("/{id}")
+    public ResponseEntity<Course> getCourseById(@PathVariable Long id) {
+        Course course = courseService.getCourseById(id);
+        if (course != null) {
+            return new ResponseEntity<>(course, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/admin/{id}")
-    public ResponseEntity<String> deleteCourseById(@PathVariable Long id){
-        boolean deleted = courseService.deleteCourseById(id);
-        if(deleted){
-            return new ResponseEntity<>("Deleted Successfully", HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Id not found", HttpStatus.NOT_FOUND);
+    @PostMapping
+    public ResponseEntity<?> createCourse(@RequestBody Course course) {
+        try {
+            Course createdCourse = courseService.createCourse(course);
+            return new ResponseEntity<>(createdCourse, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error creating course: " + e.getMessage(),
+                    HttpStatus.BAD_REQUEST);
         }
     }
 
-    @PutMapping("/admin/update/{id}")
-    public ResponseEntity<String> updateCourseDetailsById(@PathVariable Long id, @RequestBody Course course){
-        boolean updated = courseService.updateCourseDetailsById(course, id);
-        if (updated){
-            return new ResponseEntity<>("The course Details Updated", HttpStatus.OK);
-        }else{
-            return new ResponseEntity<>("The course with the id not found", HttpStatus.NOT_FOUND);
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Course course) {
+        Course updatedCourse = courseService.updateCourse(id, course);
+        if (updatedCourse != null) {
+            return new ResponseEntity<>(updatedCourse, HttpStatus.OK);
         }
+        return new ResponseEntity<>("Course not found with id: " + id, HttpStatus.NOT_FOUND);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCourse(@PathVariable Long id) {
+        boolean deleted = courseService.deleteCourse(id);
+        if (deleted) {
+            return new ResponseEntity<>("Course deleted successfully", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Course not found with id: " + id, HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/semester/{semester}")
+    public ResponseEntity<List<Course>> getCoursesBySemester(@PathVariable String semester) {
+        List<Course> courses = courseService.getCoursesBySemester(semester);
+        return new ResponseEntity<>(courses, HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Course>> searchCourses(@RequestParam String name) {
+        List<Course> courses = courseService.searchCoursesByName(name);
+        return new ResponseEntity<>(courses, HttpStatus.OK);
     }
 }

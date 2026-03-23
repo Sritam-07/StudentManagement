@@ -2,11 +2,9 @@ package com.example.StudentManagement.Services;
 
 import com.example.StudentManagement.Entity.Course;
 import com.example.StudentManagement.Repository.CourseRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CourseServiceImpl implements CourseService {
@@ -17,41 +15,54 @@ public class CourseServiceImpl implements CourseService {
         this.courseRepository = courseRepository;
     }
 
-    public List<Course> findCourseDetails() {
+    @Override
+    public List<Course> getAllCourses() {
         return courseRepository.findAll();
     }
 
     @Override
-    public void addCourse(Course course) {
-        course.setCourseName(course.getCourseName());
-        course.setSem(course.getSem());
-        course.setStudent(course.getStudent());
-        courseRepository.save(course);
-    }
-
-    @Override
-    public Boolean deleteCourseById(Long id) {
-        if (courseRepository.existsById(id)) {
-            courseRepository.deleteById(id);
-            return true;
-        } else {
-            return false;
-        }
+    public Course getCourseById(Long id) {
+        return courseRepository.findById(id).orElse(null);
     }
 
     @Override
     @Transactional
-    public Boolean updateCourseDetailsById(Course updatedCourse, Long id) {
-        Optional<Course> courseOptional = courseRepository.findById(id);
-        if (courseOptional.isPresent()) {
-            Course course = courseOptional.get();
-            course.setCourseName(updatedCourse.getCourseName());
-            course.setSem(updatedCourse.getSem());
-            course.setStudent(updatedCourse.getStudent());
-            courseRepository.save(course);
-            return true;
-        } else {
-            return false;
+    public Course createCourse(Course course) {
+        return courseRepository.save(course);
+    }
+
+    @Override
+    @Transactional
+    public Course updateCourse(Long id, Course courseDetails) {
+        Course existingCourse = courseRepository.findById(id).orElse(null);
+        if (existingCourse != null) {
+            existingCourse.setCourseName(courseDetails.getCourseName());
+            existingCourse.setCourseCode(courseDetails.getCourseCode());
+            existingCourse.setCredits(courseDetails.getCredits());
+            existingCourse.setSemester(courseDetails.getSemester());
+            existingCourse.setInstructor(courseDetails.getInstructor());
+            return courseRepository.save(existingCourse);
         }
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteCourse(Long id) {
+        if (courseRepository.existsById(id)) {
+            courseRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public List<Course> getCoursesBySemester(String semester) {
+        return courseRepository.findBySemester(semester);
+    }
+
+    @Override
+    public List<Course> searchCoursesByName(String name) {
+        return courseRepository.findByCourseNameContainingIgnoreCase(name);
     }
 }
