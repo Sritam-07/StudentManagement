@@ -38,4 +38,14 @@ public class StudentController {
                 return new ResponseEntity<>("Id not found",HttpStatus.NOT_FOUND);
             }
     }
+
+    @PutMapping("/admin/update/{id}")
+    public ResponseEntity<String> updateStudentDetailsById(@PathVariable Long id ,@RequestBody Student student){
+        boolean updated = studentService.updateStudentDetailsById(student,id);
+        if (updated){
+            return new ResponseEntity<>("The student Details Updated",HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>("The student with the id not found",HttpStatus.NOT_FOUND);
+        }
+    }
 }
